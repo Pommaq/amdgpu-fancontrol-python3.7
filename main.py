@@ -18,7 +18,7 @@ def function():
         temp_old = int(temp_old_check.read())
     finally:
         temp_old_check.close()
-    time.sleep(5)
+    time.sleep(11)
     try:
         temp_new_check = open("/sys/class/drm/card0/device/hwmon/hwmon0/temp1_input", "r")
         temp_new = int(temp_new_check.read())
@@ -62,8 +62,14 @@ def fanspeed_change(input, fan_current):
         fanspeed_apply(apply)
 
     elif int(input) == 0:
-        print("returning none")
-        return None
+        if fan_current <= 13:
+            apply = 0
+            print("Killing fans, input = 0")
+            fanspeed_apply(apply)
+        else:
+            print("Attempting to lower fans")
+            apply = fan_current - 6
+            fanspeed_apply(apply)
 
     elif int(input) == -5:
         if fan_current <= 13:
