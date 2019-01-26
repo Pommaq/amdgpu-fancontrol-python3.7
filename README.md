@@ -4,6 +4,5 @@ many features are missing due to it's early status.
 Planned features are:
   * Automatic card detection
     - automatic detection of max and min speeds
-  * Improved fancontrol 
   * Configuration files
   * Multi-GPU support
