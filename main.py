@@ -34,38 +34,32 @@ def function():
     # Calculating difference between temp_old and temp_new then increasing or decreasing fanspeed appropriately
     # if temp difference is 0 the function checks if the variable new_temp is lower or higher than 60 degrees C
     # if new_temp is higher than 60 degrees, the fanspeed isn't modified. if it is lower, the fanspeed is lowered.
+    # if temp is lower than 60 and fan PWM value is lower than 15 it simply kills the fans.
     # if the gpu temp is higher than 90 degrees C, the fans are put at max speed to prevent damage.
+    # if a temperature increase is detected, fanspeed is increased.
     if temp_new > 90000:
         print("Emergency: Temp too high! Maximising fanspeed")
         fanspeed_apply(255)
     else:
 
-        if temp_new < temp_old:
-            if fan_current <= 15:
-                print("Killing fans")
+        if temp_new == temp_old:
+            if fan_current <= 15 and temp_new <= 60000:
+                print("Temperature stagnated and temp lower than 60 degrees... Killing fans... "
+                      "Current value: " + str(fan_current))
                 fanspeed_apply(0)
-            else:
-                print("Decreasing fanspeed")
-                fanspeed_apply((lambda c: c-15)(fan_current))
 
-        elif temp_new == temp_old:
-            if temp_new <= 60000:
-                print("Temperature stagnated and below 60 degrees, attempting to lower fans")
-                fanspeed_apply((lambda c: c - 6)(fan_current))
-            elif fan_current <= 15 and temp_new <= 50000:
-                print("Killing fans")
-                fanspeed_apply(0)
-            else:
-                print("Temperature is above 60 degrees, increasing fanspeed")
-                fanspeed_apply((lambda c: c+15)(fan_current))
+            elif temp_new <= 60000 and fan_current != 0 and fan_current >= 15:
+                print("Temperature stagnated and below 60 degrees, attempting to lower fans. "
+                      "Current value: " + str(fan_current))
+                fanspeed_apply((lambda c: c - 5)(fan_current))
+
+            elif temp_new > 60000:
+                print("Temperature is above 60 degrees, increasing fanspeed... Value is: " + str(fan_current))
+                fanspeed_apply((lambda c: c+20)(fan_current))
 
         elif temp_new > temp_old and fan_current <=255:
-            print("Increasing fanspeed")
-            fanspeed_apply((lambda c: c+15)(fan_current))
-
-
-
-
+            print("Temperature is increasing. Increasing fanspeed... Value is: " + str(fan_current))
+            fanspeed_apply((lambda c: c+20)(fan_current))
 
 
 def fanspeed_apply(inputs):
@@ -77,15 +71,6 @@ def fanspeed_apply(inputs):
         pwm1.close()
 
 
-
-
-
-
-
-
-
-
-
+fanspeed_apply(50)
 while True:
     function()
-    time.sleep(2)
