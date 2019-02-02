@@ -7,8 +7,7 @@ import time
 # Max speed:255
 # Min speed: 0
  # TODO: Figure out whether or not the fancontrol (existence of pwm1) is dependent on drivers or not. Solve that.
- # TODO: Multi-GPU support. make each GPU and instance of a class, perhaps?
- # TODO: Automatic GPU detection.
+ # TODO: Automatic GPU detection. The locations of writing fanspeeds must be changed depending on gpu location.
 
 
 # Checking old and new temperature assigning temps to temp_old && temp_new
@@ -55,9 +54,7 @@ class GraphicsProcessor:
 
             if temp_new == temp_old:
                 if fan_current <= 15 and temp_new <= 60000:
-                    print("Temperature stagnated and temp lower than 60 degrees... Killing fans... "
-                          "Current value: " + str(fan_current))
-                    self.fanspeed_apply(0)
+                    self.killfans()
 
                 elif temp_new <= 60000 and fan_current != 0:
                     print("Temperature stagnated and below 60 degrees, attempting to lower fans. "
@@ -73,12 +70,20 @@ class GraphicsProcessor:
                 self.fanspeed_apply((lambda c: c+20)(fan_current))
 
             elif temp_new < temp_old and temp_new <= 60000:
-                print("Temperature is dropping and is below 60 degrees. Lowering fanspeed... "
-                      " Current value: " + str(fan_current))
-                self.fanspeed_apply((lambda c: c-10)(fan_current))
+                if fan_current <= 15:
+                    self.killfans()
+                else:
+                    print("Temperature is dropping and is below 60 degrees. Lowering fanspeed... "
+                          " Current value: " + str(fan_current))
+                    self.fanspeed_apply((lambda c: c-10)(fan_current))
+    # killfans is a function that kills the fans.
+    # This was made into a function due to the need of using the same code twice. Keep it DRY :)
+
+    def killfans(self):
+        print("Temperature stagnated and temp lower than 60 degrees... Killing fans...")
+        self.fanspeed_apply(0)
 
     def fanspeed_apply(self, inputs):
-
         try:
             pwm1 = open("/sys/class/drm/card0/device/hwmon/hwmon0/pwm1", "w")
             pwm1.write(str(inputs))
