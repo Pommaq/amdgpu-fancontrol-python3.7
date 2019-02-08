@@ -7,30 +7,38 @@ import time
 # Max speed:255
 # Min speed: 0
  # TODO: Figure out whether or not the fancontrol (existence of pwm1) is dependent on drivers or not. Solve that.
- # TODO: Automatic GPU detection. The locations of writing fanspeeds must be changed depending on gpu location.
-
-
-# Checking old and new temperature assigning temps to temp_old && temp_new
 
 
 class GraphicsProcessor:
 
+ # Defines what happens when the class is created.
+ # It adds input value to variable "device" , which is used for detecting GPU location.
+ # Afterwards the temperature control process is started.
+    def __init__(self, devicex)
+    device = devicex
+    self.fanspeed_apply(50)
+    while true:
+        self.function()
+
+
     def function(self):
+
+        # Checking temperatures with a small timeout and then checking current fanspeed.
         try:
-            temp_old_check = open("/sys/class/drm/card0/device/hwmon/hwmon0/temp1_input", "r")
+            temp_old_check = open("/sys/class/drm/card{0}/device/hwmon/hwmon0/temp1_input".format(device), "r")
             temp_old = int(temp_old_check.read())
         finally:
             temp_old_check.close()
             time.sleep(7)
         try:
-            temp_new_check = open("/sys/class/drm/card0/device/hwmon/hwmon0/temp1_input", "r")
+            temp_new_check = open("/sys/class/drm/card{0}/device/hwmon/hwmon0/temp1_input".format(device), "r")
             temp_new = int(temp_new_check.read())
         finally:
             temp_new_check.close()
 
     # Checking current fanspeed, assigning it to variable fan_current as an int
         try:
-            fans = open("/sys/class/drm/card0/device/hwmon/hwmon0/pwm1", "r")
+            fans = open("/sys/class/drm/card{0}/device/hwmon/hwmon0/pwm1".format(device), "r")
             fan_current = int(fans.read())
         finally:
             fans.close()
@@ -85,13 +93,16 @@ class GraphicsProcessor:
 
     def fanspeed_apply(self, inputs):
         try:
-            pwm1 = open("/sys/class/drm/card0/device/hwmon/hwmon0/pwm1", "w")
+            pwm1 = open("/sys/class/drm/card{0}/device/hwmon/hwmon0/pwm1".format(device), "w")
             pwm1.write(str(inputs))
         finally:
             pwm1.close()
 
 
-GPU= GraphicsProcessor()
-GPU.fanspeed_apply(50)
-while True:
-    GPU.function()
+ # Assigning up to 6 graphics processors to one class each.
+gpudictionary = {}
+for i in range (6):
+    try:
+        gpudictionary["device{0}".format(i)] = GraphicsProcessor(i)
+    except FileNotFoundError:
+        break
