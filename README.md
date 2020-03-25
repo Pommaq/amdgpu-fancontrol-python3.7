@@ -1,6 +1,7 @@
 # amdgpu-fancontrol-python3.7
-This is a WIP python fancontrol script for automatically controlling the fans for amd graphicscards.
-some features are missing due to it's early status. it has currently been tested on an R9 380 (4gb) and a Radeon hd4870
+This is a WIP python fancontrol script for automatically controlling the fans for amd graphicscards. I wrote this since Linux didn't control the fans on my R9 380 natively.
+
+Some features are missing due to it's early status. it has currently been tested on an R9 380 (4gb) and a Radeon hd4870
 Planned features are:
   * Automatic card detection
     - automatic detection of max and min speeds
